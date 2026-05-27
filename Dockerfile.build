@@ -1,0 +1,74 @@
+# ─── AIBar Linux build container ──────────────────────────────────────────────
+# Produces a Linux x86_64 .deb / .AppImage / .rpm bundle.
+# Usage:
+#   docker build -f Dockerfile.build -t aibar-builder .
+#   docker run --rm -v "$(pwd)/dist:/app/dist" aibar-builder
+# Output lands in dist/ on your host.
+# ──────────────────────────────────────────────────────────────────────────────
+
+FROM ubuntu:22.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV CARGO_HOME=/usr/local/cargo
+ENV RUSTUP_HOME=/usr/local/rustup
+ENV PATH="/usr/local/cargo/bin:${PATH}"
+ENV NODE_VERSION=20
+
+# ── System deps ────────────────────────────────────────────────────────────────
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    # Tauri Linux deps
+    libwebkit2gtk-4.1-dev \
+    libappindicator3-dev \
+    librsvg2-dev \
+    patchelf \
+    # Build tools
+    build-essential \
+    curl \
+    file \
+    wget \
+    git \
+    # GTK / glib for tray
+    libgtk-3-dev \
+    libayatana-appindicator3-dev \
+    # Bundling
+    libssl-dev \
+    pkg-config \
+    # rpm / deb creation
+    rpm \
+    && rm -rf /var/lib/apt/lists/*
+
+# ── Node.js ────────────────────────────────────────────────────────────────────
+RUN curl -fsSL https://deb.nodesource.com/setup_${NODE_VERSION}.x | bash - \
+    && apt-get install -y nodejs \
+    && rm -rf /var/lib/apt/lists/*
+
+# ── Rust (stable) ──────────────────────────────────────────────────────────────
+RUN curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain stable \
+    && rustup target add x86_64-unknown-linux-gnu
+
+WORKDIR /app
+
+# ── Cache layers: install deps before copying source ──────────────────────────
+COPY package.json package-lock.json* ./
+RUN npm ci --prefer-offline
+
+COPY src-tauri/Cargo.toml src-tauri/Cargo.lock* src-tauri/
+RUN mkdir -p src-tauri/src && echo 'fn main(){}' > src-tauri/src/main.rs
+WORKDIR /app/src-tauri
+RUN cargo fetch
+WORKDIR /app
+
+# ── Copy source ────────────────────────────────────────────────────────────────
+COPY . .
+
+# ── Build ──────────────────────────────────────────────────────────────────────
+RUN npm run prepare \
+    && npm run tauri build -- --bundles deb,appimage
+
+# ── Copy output to /app/dist for volume mount ─────────────────────────────────
+RUN mkdir -p /app/dist \
+    && find src-tauri/target/release/bundle -type f \
+       \( -name "*.deb" -o -name "*.AppImage" -o -name "*.rpm" \) \
+       -exec cp {} /app/dist/ \;
+
+CMD ["sh", "-c", "echo 'Build complete. Bundles in /app/dist:' && ls /app/dist"]

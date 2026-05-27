@@ -97,6 +97,7 @@ impl AiService for OpenAiService {
             last_updated: Utc::now(),
             error: None,
             dashboard_url: self.dashboard_url().to_string(),
+            plan_usage: None,
         };
         data.compute_status(thresholds);
         data

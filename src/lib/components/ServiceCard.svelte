@@ -11,6 +11,8 @@
     gemini: '◈',
     grok: '✕',
     perplexity: '⊗',
+    claude_web: '✦',
+    chatgpt_web: '⊕',
   };
 
   const updatedLabel = $derived.by(() => {

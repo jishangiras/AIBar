@@ -64,10 +64,14 @@ pub fn run() {
 
 pub fn all_services() -> Vec<Box<dyn services::AiService>> {
     vec![
+        // API-key based (rate-limit headers)
         Box::new(services::claude::ClaudeService::new()),
         Box::new(services::openai::OpenAiService::new()),
         Box::new(services::gemini::GeminiService::new()),
         Box::new(services::grok::GrokService::new()),
         Box::new(services::perplexity::PerplexityService::new()),
+        // Web-session based (plan usage / message caps)
+        Box::new(services::claude_web::ClaudeWebService::new()),
+        Box::new(services::chatgpt_web::ChatGptWebService::new()),
     ]
 }

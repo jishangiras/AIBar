@@ -17,11 +17,15 @@
 
   // ── Settings state ───────────────────────────────────────────────────
   const SERVICES = [
-    { id: 'claude',     name: 'Claude',     icon: '✦', org: 'Anthropic',     keyHint: 'sk-ant-api…', keyPage: 'https://console.anthropic.com/settings/keys',  note: 'Paid API — separate from Claude.ai Pro' },
-    { id: 'openai',     name: 'ChatGPT',    icon: '⊕', org: 'OpenAI',        keyHint: 'sk-…',        keyPage: 'https://platform.openai.com/api-keys',          note: 'Paid API — separate from ChatGPT Plus' },
-    { id: 'gemini',     name: 'Gemini',     icon: '◈', org: 'Google',        keyHint: 'AIza…',       keyPage: 'https://aistudio.google.com/app/apikey',         note: 'Free tier available' },
-    { id: 'grok',       name: 'Grok',       icon: '✕', org: 'xAI',           keyHint: 'xai-…',       keyPage: 'https://console.x.ai/',                          note: 'Paid API' },
-    { id: 'perplexity', name: 'Perplexity', icon: '⊗', org: 'Perplexity AI', keyHint: 'pplx-…',     keyPage: 'https://www.perplexity.ai/settings/api',         note: 'Paid API' },
+    // ── Web session services (plan usage / message caps) ─────────────────
+    { id: 'claude_web',  name: 'Claude.ai',  icon: '✦', org: 'Anthropic',     keyHint: 'sk-ant-sid…', keyPage: 'https://claude.ai/settings/limits',             note: 'Session cookie from claude.ai — monitors Pro plan usage, credits & routine runs. Get from DevTools → Application → Cookies → sessionKey' },
+    { id: 'chatgpt_web', name: 'ChatGPT',    icon: '⊕', org: 'OpenAI',        keyHint: 'eyJhbGci…',   keyPage: 'https://chatgpt.com/',                          note: 'Session cookie from chatgpt.com — monitors message caps (5-hour & weekly). Get from DevTools → Application → Cookies → __Secure-next-auth.session-token' },
+    // ── API key services (rate-limit headers) ────────────────────────────
+    { id: 'claude',      name: 'Claude API', icon: '✦', org: 'Anthropic',     keyHint: 'sk-ant-api…', keyPage: 'https://console.anthropic.com/settings/keys',   note: 'Paid API key — monitors per-minute request & token rate limits' },
+    { id: 'openai',      name: 'OpenAI API', icon: '⊕', org: 'OpenAI',        keyHint: 'sk-…',        keyPage: 'https://platform.openai.com/api-keys',           note: 'Paid API key — monitors per-minute request & token rate limits' },
+    { id: 'gemini',      name: 'Gemini',     icon: '◈', org: 'Google',        keyHint: 'AIza…',       keyPage: 'https://aistudio.google.com/app/apikey',          note: 'Free tier available' },
+    { id: 'grok',        name: 'Grok',       icon: '✕', org: 'xAI',           keyHint: 'xai-…',       keyPage: 'https://console.x.ai/',                          note: 'Paid API key' },
+    { id: 'perplexity',  name: 'Perplexity', icon: '⊗', org: 'Perplexity AI', keyHint: 'pplx-…',     keyPage: 'https://www.perplexity.ai/settings/api',         note: 'Paid API key' },
   ] as const;
 
   let connected = $state<Set<string>>(new Set());

@@ -57,7 +57,10 @@ pub async fn delete_api_key(service_id: String) -> Result<(), String> {
 
 #[tauri::command]
 pub async fn get_stored_service_ids() -> Result<Vec<String>, String> {
-    let ids = ["claude", "openai", "gemini", "grok", "perplexity"];
+    let ids = [
+        "claude", "openai", "gemini", "grok", "perplexity",
+        "claude_web", "chatgpt_web",
+    ];
     Ok(ids
         .iter()
         .filter(|&&id| {
@@ -163,11 +166,13 @@ pub async fn refresh_service(
 
     // Look up the static service metadata (name, icon, dashboard) by id
     let (svc_name, svc_icon, svc_dashboard) = match service_id.as_str() {
-        "claude"     => ("Claude",      "claude",      "https://console.anthropic.com/settings/usage"),
-        "openai"     => ("ChatGPT",     "openai",      "https://platform.openai.com/usage"),
-        "gemini"     => ("Gemini",      "gemini",      "https://aistudio.google.com/app/apikey"),
-        "grok"       => ("Grok",        "grok",        "https://console.x.ai/"),
-        "perplexity" => ("Perplexity",  "perplexity",  "https://www.perplexity.ai/settings/api"),
+        "claude"       => ("Claude",     "claude",      "https://console.anthropic.com/settings/usage"),
+        "claude_web"   => ("Claude.ai",  "claude",      "https://claude.ai/settings/limits"),
+        "openai"       => ("ChatGPT",    "openai",      "https://platform.openai.com/usage"),
+        "chatgpt_web"  => ("ChatGPT",    "openai",      "https://chatgpt.com/"),
+        "gemini"       => ("Gemini",     "gemini",      "https://aistudio.google.com/app/apikey"),
+        "grok"         => ("Grok",       "grok",        "https://console.x.ai/"),
+        "perplexity"   => ("Perplexity", "perplexity",  "https://www.perplexity.ai/settings/api"),
         _ => return Err(format!("Unknown service: {service_id}")),
     };
 
@@ -237,6 +242,16 @@ async fn fetch_by_id(
         }
         "perplexity" => {
             crate::services::perplexity::PerplexityService::new()
+                .fetch(api_key, thresholds)
+                .await
+        }
+        "claude_web" => {
+            crate::services::claude_web::ClaudeWebService::new()
+                .fetch(api_key, thresholds)
+                .await
+        }
+        "chatgpt_web" => {
+            crate::services::chatgpt_web::ChatGptWebService::new()
                 .fetch(api_key, thresholds)
                 .await
         }

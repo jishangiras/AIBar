@@ -28,7 +28,7 @@ pub struct AppSettings {
 impl Default for AppSettings {
     fn default() -> Self {
         let mut service_configs = HashMap::new();
-        for id in ["claude", "openai", "gemini", "grok", "perplexity"] {
+        for id in ["claude", "claude_web", "openai", "chatgpt_web", "gemini", "grok", "perplexity"] {
             service_configs.insert(id.to_string(), ServiceConfig::default());
         }
         Self {

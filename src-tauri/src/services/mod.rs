@@ -1,4 +1,6 @@
 pub mod claude;
+pub mod claude_web;
+pub mod chatgpt_web;
 pub mod gemini;
 pub mod grok;
 pub mod openai;
@@ -25,6 +27,39 @@ pub struct RateLimit {
     pub reset_in_secs: Option<u64>,
 }
 
+/// Rich plan-level usage data fetched from the web app sessions
+/// (claude.ai / chatgpt.com) rather than the raw API.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PlanUsage {
+    pub plan: Option<String>,
+
+    // ── Claude.ai ───────────────────────────────────────────────────────
+    /// Current session: percentage of quota *used* (0–100)
+    pub session_pct_used: Option<f64>,
+    /// Seconds until the session window resets
+    pub session_resets_secs: Option<i64>,
+    /// Weekly all-models: percentage *used* (0–100)
+    pub weekly_pct_used: Option<f64>,
+    /// Seconds until the weekly window resets
+    pub weekly_resets_secs: Option<i64>,
+    /// Claude Design: percentage *used* (0–100)
+    pub design_pct_used: Option<f64>,
+    pub routine_runs_used: Option<u32>,
+    pub routine_runs_limit: Option<u32>,
+    pub credits_spent: Option<f64>,
+    pub credits_limit: Option<f64>,
+    pub credits_balance: Option<f64>,
+    pub credits_currency: Option<String>,
+
+    // ── ChatGPT ─────────────────────────────────────────────────────────
+    pub cap_5h_remaining: Option<u32>,
+    pub cap_5h_limit: Option<u32>,
+    pub cap_5h_resets_secs: Option<i64>,
+    pub cap_weekly_remaining: Option<u32>,
+    pub cap_weekly_limit: Option<u32>,
+    pub cap_weekly_resets_secs: Option<i64>,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ServiceData {
     pub id: String,
@@ -37,6 +72,9 @@ pub struct ServiceData {
     pub last_updated: DateTime<Utc>,
     pub error: Option<String>,
     pub dashboard_url: String,
+    /// Present only for web-session services (claude_web, chatgpt_web)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub plan_usage: Option<PlanUsage>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -97,5 +135,6 @@ pub fn build_error_data(
         last_updated: Utc::now(),
         error: Some(err),
         dashboard_url: dashboard_url.to_string(),
+        plan_usage: None,
     }
 }
